@@ -31,8 +31,20 @@ impl G2Point {
         input[..64].clone_from_slice(&H::try_hash_to_curve(message)?.0);
         // 2) Decompress our public key
         input[64..192].clone_from_slice(&self.0);
+
+        // Reject zero public key
+        if input[64..192].iter().all(|&b| b == 0) {
+            return Err(BLSError::BLSVerificationError);
+        }
+        
         // 3) Decompress our signature
         input[192..256].clone_from_slice(&signature.to_bytes()?);
+
+        // Reject zero signature
+        if input[192..256].iter().all(|&b| b == 0) {
+            return Err(BLSError::BLSVerificationError);
+        }
+
         // 4) Pair with -G2::one()
         input[256..].clone_from_slice(&G2_MINUS_ONE);
 
@@ -104,8 +116,20 @@ impl G2CompressedPoint {
         input[..64].clone_from_slice(&H::try_hash_to_curve(message)?.0);
         // 2) Decompress our public key
         input[64..192].clone_from_slice(&G2Point::try_from(self)?.0);
+
+        // Reject zero public key
+        if input[64..192].iter().all(|&b| b == 0) {
+            return Err(BLSError::BLSVerificationError);
+        }
+
         // 3) Decompress our signature
         input[192..256].clone_from_slice(&signature.to_bytes()?);
+
+        // Reject zero signature
+        if input[192..256].iter().all(|&b| b == 0) {
+            return Err(BLSError::BLSVerificationError);
+        }
+
         // 4) Pair with -G2::one()
         input[256..].clone_from_slice(&G2_MINUS_ONE);
 

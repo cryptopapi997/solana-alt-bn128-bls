@@ -113,3 +113,71 @@ fn signature_verification() {
         .verify_signature::<Sha256Normalized, &str, G1CompressedPoint>(signature_compressed, "sample")
         .is_ok());
 }
+
+#[test]
+fn rejects_sig_with_zero_msg() {
+    let pubkey = G2CompressedPoint([
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0,
+    ]);
+    let sig = G1CompressedPoint([42; 32]);
+    let msg = [42; 20];
+    let succ = pubkey.verify_signature::<Sha256Normalized, &[u8], G1CompressedPoint>(sig, &msg);
+    assert!(succ.is_err());
+}
+
+#[test]
+fn rejects_sig_with_zero_sig() {
+    let pubkey = G2CompressedPoint([42; 64]);
+    let sig = G1CompressedPoint([
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0,
+    ]);
+    let msg = [42; 20];
+    let succ = pubkey.verify_signature::<Sha256Normalized, &[u8], G1CompressedPoint>(sig, &msg);
+    assert!(succ.is_err());
+}
+
+#[test]
+fn rejects_sig_with_zero_sig_and_key() {
+    let pubkey = G2CompressedPoint([
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0,
+    ]);
+    let sig = G1CompressedPoint([
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0,
+    ]);
+    let msg = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    let succ = pubkey.verify_signature::<Sha256Normalized, &[u8], G1CompressedPoint>(sig, &msg);
+    assert!(succ.is_err());
+}
+
+#[test]
+fn rejects_sig_with_zero_msg_uncompressed() {
+    let pubkey = G2Point([0; 128]);
+    let sig = G1Point([42; 64]);
+    let msg = [42; 20];
+    let succ = pubkey.verify_signature::<Sha256Normalized, &[u8], G1Point>(sig, &msg);
+    assert!(succ.is_err());
+}
+
+#[test]
+fn rejects_sig_with_zero_sig_uncompressed() {
+    let pubkey = G2Point([42; 128]);
+    let sig = G1Point([0; 64]);
+    let msg = [42; 20];
+    let succ = pubkey.verify_signature::<Sha256Normalized, &[u8], G1Point>(sig, &msg);
+    assert!(succ.is_err());
+}
+
+#[test]
+fn rejects_sig_with_zero_sig_and_key_uncompressed() {
+    let pubkey = G2Point([0; 128]);
+    let sig = G1Point([0; 64]);
+    let msg = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    let succ = pubkey.verify_signature::<Sha256Normalized, &[u8], G1Point>(sig, &msg);
+    assert!(succ.is_err());
+}
